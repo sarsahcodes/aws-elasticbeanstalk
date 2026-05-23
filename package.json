@@ -1,0 +1,28 @@
+{
+  "name": "aws-elasticbeanstalk",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sarsahcodes/aws-elasticbeanstalk.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/sarsahcodes/aws-elasticbeanstalk/issues"
+  },
+  "homepage": "https://github.com/sarsahcodes/aws-elasticbeanstalk#readme",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.1053.0",
+    "@aws-sdk/lib-dynamodb": "^3.1053.0",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  }
+}
