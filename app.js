@@ -27,7 +27,7 @@ const dynamodb = DynamoDBDocumentClient.from(client);
 app.get("/", async (req, res) => {
   const response = {
     app: "Elastic Beanstalk Node.js App",
-    version: process.env.APP_VERSION || "3.0.0",
+    version: process.env.APP_VERSION || "4.0.0",
     status: "SUCCESS",
   };
 
