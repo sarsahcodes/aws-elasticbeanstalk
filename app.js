@@ -14,7 +14,7 @@ const app = express();
 
 const PORT = process.env.PORT || 8080;
 
-const region = process.env.AWS_REGION || "us-east-1";
+const region = process.env.AWS_REGION || "eu-central-1";
 
 const tableName = process.env.DYNAMODB_TABLE;
 
@@ -27,11 +27,12 @@ const dynamodb = DynamoDBDocumentClient.from(client);
 app.get("/", async (req, res) => {
   const response = {
     app: "Elastic Beanstalk Node.js App",
-    version: process.env.APP_VERSION || "1.0.0",
+    version: process.env.APP_VERSION || "2.0.0",
     status: "SUCCESS",
   };
 
   if (tableName) {
+    console.log(`Scanning DynamoDB table: ${tableName}`);
     try {
       const data = await dynamodb.send(
         new ScanCommand({
@@ -42,6 +43,7 @@ app.get("/", async (req, res) => {
 
       response.dynamodb = data.Items || [];
     } catch (error) {
+      console.error(`Error scanning DynamoDB table: ${tableName}`, error);
       response.dynamodb_error = error.message;
     }
   }
