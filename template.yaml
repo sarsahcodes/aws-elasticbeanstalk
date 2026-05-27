@@ -1,0 +1,125 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Elastic Beanstalk Node.js App with DynamoDB + S3
+
+Parameters:
+  ApplicationName:
+    Type: String
+    Default: week3-node-app
+  
+  EnvironmentName:
+    Type: String
+    Default: week3-node-env
+  
+  DynamoDBTableName:
+    Type: String
+    Default: app-users
+  
+  InstanceType:
+    Type: String
+    Default: t3.micro
+    AllowedValues:
+      - t2.micro
+      - t2.small
+      - t3.micro
+      - t3.small
+
+Resources:
+  # S3 Bucket for Application Code
+  Week3LabBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "week3-lab-${AWS::AccountId}"
+  
+  # DynamoDB Table
+  AppUsersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref DynamoDBTableName
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: email
+          AttributeType: S
+      KeySchema:
+        - AttributeName: email
+          KeyType: HASH
+  
+  # IAM Role for EC2 Instances
+  EBEC2Role:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSElasticBeanstalkWebTier
+      Policies:
+        - PolicyName: DynamoDBAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:GetItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:DeleteItem
+                  - dynamodb:Scan
+                Resource: !GetAtt AppUsersTable.Arn
+  
+  # Instance Profile
+  EBInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref EBEC2Role
+  
+  # Elastic Beanstalk Application
+  EBApplication:
+    Type: AWS::ElasticBeanstalk::Application
+    Properties:
+      ApplicationName: !Ref ApplicationName
+  
+  # Elastic Beanstalk Environment
+  EBEnvironment:
+    Type: AWS::ElasticBeanstalk::Environment
+    Properties:
+      ApplicationName: !Ref EBApplication
+      EnvironmentName: !Ref EnvironmentName
+      Tier:
+        Name: WebServer
+        Type: Standard
+      SolutionStackName: "64bit Amazon Linux 2023 v6.5.1 running Node.js 20"
+      OptionSettings:
+        - Namespace: aws:autoscaling:launchconfiguration
+          OptionName: IamInstanceProfile
+          Value: !Ref EBInstanceProfile
+        - Namespace: aws:autoscaling:launchconfiguration
+          OptionName: InstanceType
+          Value: !Ref InstanceType
+        - Namespace: aws:elasticbeanstalk:application:environment
+          OptionName: DYNAMODB_TABLE
+          Value: !Ref DynamoDBTableName
+        - Namespace: aws:elasticbeanstalk:application:environment
+          OptionName: AWS_REGION
+          Value: !Ref AWS::Region
+        - Namespace: aws:autoscaling:asg
+          OptionName: MinSize
+          Value: "1"
+        - Namespace: aws:autoscaling:asg
+          OptionName: MaxSize
+          Value: "2"
+
+Outputs:
+  EBURL:
+    Description: URL of the Elastic Beanstalk environment
+    Value: !GetAtt EBEnvironment.EndpointURL
+  DynamoDBTable:
+    Description: DynamoDB table name
+    Value: !Ref AppUsersTable
+  S3Bucket:
+    Description: S3 bucket name
+    Value: !Ref Week3LabBucket

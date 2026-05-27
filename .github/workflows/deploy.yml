@@ -10,8 +10,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout source code
+      - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
 
       - name: Create deployment package
         run: zip -r app.zip . -x "*.git*"
@@ -21,21 +29,33 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: eu-central-1
 
-      - name: Upload bundle to S3
+      #########################################
+      # Upload to S3
+      #########################################
+
+      - name: Upload to S3
         run: |
-          aws s3 cp app.zip s3://${{ secrets.S3_BUCKET }}/app-${{ github.sha }}.zip
+          aws s3 cp app.zip s3://week-3-lab-2/app-${{ github.sha }}.zip
 
-      - name: Create new Elastic Beanstalk version
+      #########################################
+      # Create Application Version
+      #########################################
+
+      - name: Create Elastic Beanstalk Version
         run: |
           aws elasticbeanstalk create-application-version \
-            --application-name ${{ secrets.EB_APPLICATION_NAME }} \
+            --application-name week3-node-app \
             --version-label ${{ github.sha }} \
-            --source-bundle S3Bucket="${{ secrets.S3_BUCKET }}",S3Key="app-${{ github.sha }}.zip"
+            --source-bundle S3Bucket="week-3-lab-2",S3Key="app-${{ github.sha }}.zip"
 
-      - name: Deploy application
+      #########################################
+      # Deploy Version
+      #########################################
+
+      - name: Deploy to Elastic Beanstalk
         run: |
           aws elasticbeanstalk update-environment \
-            --environment-name ${{ secrets.EB_ENVIRONMENT_NAME }} \
+            --environment-name week3-node-env \
             --version-label ${{ github.sha }}

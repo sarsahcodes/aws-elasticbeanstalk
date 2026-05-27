@@ -1,0 +1,20 @@
+[
+  {
+    "PutRequest": {
+      "Item": {
+        "email": {"S": "john@example.com"},
+        "name": {"S": "John Doe"},
+        "role": {"S": "admin"}
+      }
+    }
+  },
+  {
+    "PutRequest": {
+      "Item": {
+        "email": {"S": "mary@example.com"},
+        "name": {"S": "Mary Smith"},
+        "role": {"S": "user"}
+      }
+    }
+  }
+]
