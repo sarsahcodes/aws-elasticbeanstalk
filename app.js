@@ -36,7 +36,7 @@ app.get("/", async (req, res) => {
       const data = await dynamodb.send(
         new ScanCommand({
           TableName: tableName,
-          Limit: 1,
+          Limit: 2,
         })
       );
 
